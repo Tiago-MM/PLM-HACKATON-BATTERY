@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Centre de Tri - Gestion</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-purple: #7C3AED;
+            --bg-body: #F5F3FF; /* Violet très clair */
+            --text-dark: #1F2937;
+            --card-white: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 40px;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;
+        }
+
+        h1 { font-size: 2rem; margin: 0; color: #4C1D95; }
+        .subtitle { color: #6D28D9; }
+
+        /* Stats Cards */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border-left: 5px solid var(--primary-purple); }
+        .stat-value { font-size: 2rem; font-weight: 700; color: var(--text-dark); }
+        .stat-label { font-size: 0.9rem; color: #6B7280; text-transform: uppercase; }
+
+        /* Table */
+        .stock-card {
+            background: white; border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #EDE9FE; color: #5B21B6; text-align: left; padding: 15px 20px; font-weight: 600; font-size: 0.9rem; }
+        td { padding: 15px 20px; border-bottom: 1px solid #F3F4F6; vertical-align: middle; }
+        tr:hover { background-color: #FAFAFA; }
+
+        .serial { font-weight: 600; font-family: monospace; }
+        
+        /* Badges */
+        .badge-chem { background: #E0E7FF; color: #3730A3; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
+        .soh-critical { color: #DC2626; font-weight: bold; }
+        .soh-ok { color: #059669; font-weight: bold; }
+
+        /* Buttons */
+        .actions { display: flex; gap: 10px; }
+        .btn { padding: 8px 16px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; text-decoration: none; font-size: 0.9rem; transition: transform 0.1s; }
+        
+        .btn-recycle { background-color: #DC2626; color: white; }
+        .btn-recycle:hover { background-color: #B91C1C; }
+        
+        .btn-reuse { background-color: #059669; color: white; }
+        .btn-reuse:hover { background-color: #047857; }
+
+        .empty-state { padding: 50px; text-align: center; color: #9CA3AF; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>♻️ Centre de Tri</h1>
+            <div class="subtitle">Gestion des batteries en fin de vie</div>
+        </div>
+        <a href="/" style="color: #6D28D9; text-decoration: none; font-weight: 600;">← Retour Accueil</a>
+    </header>
+
+    <div class="stats-grid">
+        
+        <div class="stat-card">
+            <div class="stat-value">{{ stock|length }}</div>
+            <div class="stat-label">Batteries en attente</div>
+        </div>
+        
+    </div>
+
+    <div class="stock-card">
+        {% if stock %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Numéro Série</th>
+                    <th>Date Réception</th>
+                    <th>Chimie</th>
+                    <th>Santé (SoH)</th>
+                    <th>Recyclabilité</th>
+                    <th>Actions Décisionnelles</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for batt in stock %}
+                <tr>
+                    <td class="serial">{{ batt.Serial }}</td>
+                    <td>{{ batt.ArrivalDate }}</td>
+                    <td><span class="badge-chem">{{ batt.Chemistry }}</span></td>
+                    <td>
+                        <span class="{{ 'soh-ok' if batt.SoH > 80 else 'soh-critical' }}">
+                            {{ batt.SoH }}%
+                        </span>
+                    </td>
+                    <td>{{ batt.Recyclability }}%</td>
+                    <td>
+                        <div class="actions">
+                            <a href="{{ url_for('process_battery', action='revalorise', passport_id=batt.PassportID) }}" 
+                               class="btn btn-recycle"
+                               onclick="return confirm('Confirmer le recyclage de cette batterie ?')">
+                               🔥 Revaloriser
+                            </a>
+
+                            <a href="{{ url_for('process_battery', action='recycled', passport_id=batt.PassportID) }}" 
+                               class="btn btn-reuse"
+                               onclick="return confirm('Valider cette batterie pour recycler ?')">
+                               🔋 Recycler
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <div class="empty-state">
+                <h2>Aucune batterie en attente</h2>
+                <p>Le stock est vide. En attente de transferts depuis les constructeurs.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+</body>
+</html>

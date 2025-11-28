@@ -1,0 +1,6 @@
+passportID,ownerName,purchaseDate,location,contractType
+PASS-UUID-884,DHL Logistics,2023-06-15,Berlin DE,Leasing
+PASS-UUID-885,Jean Dupont,2023-05-20,Lyon FR,Achat Particulier
+PASS-UUID-102,Green Taxi Corp,2021-12-10,Madrid ES,Flotte Pro
+PASS-UUID-009,City Bus Paris,2024-01-10,Paris FR,Service Public
+PASS-UUID-999,VoltTech R&D,2024-03-01,Labo 4,Interne

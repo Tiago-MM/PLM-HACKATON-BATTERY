@@ -1,0 +1,6 @@
+passportID,serialNumber,qrCodeURL,carbonFootprint
+PASS-UUID-884,SN-2023-VT-884,https://pass.eu/batt/884,4500kgCO2e
+PASS-UUID-885,SN-2023-VT-885,https://pass.eu/batt/885,4550kgCO2e
+PASS-UUID-102,SN-2023-GE-102,https://pass.eu/batt/102,3800kgCO2e
+PASS-UUID-009,SN-2024-PC-009,https://pass.eu/batt/009,5100kgCO2e
+PASS-UUID-999,SN-2024-VT-999,https://pass.eu/batt/999,4200kgCO2e

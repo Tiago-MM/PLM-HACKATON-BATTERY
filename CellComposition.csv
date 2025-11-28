@@ -1,0 +1,5 @@
+modelID,cathodeMaterial,anodeMaterial,recyclabilityIndex
+MOD-001,LiNiMnCoO2,Graphite,85
+MOD-002,LiFePO4,Silicon-Graphite,92
+MOD-003,LiNiCoAlO2,Graphite,80
+MOD-004,Solid Electrolyte,Lithium Metal,98

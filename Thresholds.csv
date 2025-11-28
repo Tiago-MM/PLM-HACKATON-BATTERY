@@ -1,0 +1,5 @@
+modelID,maxResistance_Ohm,minVoltage_V
+MOD-001,0.05,3.2
+MOD-002,0.08,2.8
+MOD-003,0.04,3.4
+MOD-004,0.02,3.5

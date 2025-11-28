@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Connexion Propriétaire</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #F8F9FB; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; width: 400px; }
+        h1 { margin-bottom: 30px; color: #111827; }
+        .owner-btn {
+            display: block; width: 100%; padding: 15px; margin-bottom: 15px;
+            background: white; border: 2px solid #E5E7EB; border-radius: 12px;
+            font-size: 16px; font-weight: 600; color: #374151; cursor: pointer;
+            text-decoration: none; transition: all 0.2s;
+        }
+        .owner-btn:hover { border-color: #10B981; color: #10B981; background: #ecfdf5; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h1>👤 Qui êtes-vous ?</h1>
+        {% if owners %}
+            {% for owner in owners %}
+                <a href="{{ url_for('owner_dashboard', owner_name=owner.name) }}" class="owner-btn">
+                    {{ owner.name }}
+                </a>
+            {% endfor %}
+        {% else %}
+            <p>Aucun propriétaire trouvé dans la base.</p>
+        {% endif %}
+        <a href="/" style="display:block; margin-top:20px; color:#999; text-decoration:none;">← Retour accueil</a>
+    </div>
+</body>
+</html>

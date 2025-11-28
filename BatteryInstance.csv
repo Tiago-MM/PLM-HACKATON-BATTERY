@@ -1,0 +1,6 @@
+serialNumber,modelID,status,manufacturingDate
+SN-2023-VT-884,MOD-001,Active,2023-05-12
+SN-2023-VT-885,MOD-001,Maintenance,2023-05-14
+SN-2023-GE-102,MOD-002,Decommissioned,2021-11-20
+SN-2024-PC-009,MOD-003,Active,2024-01-05
+SN-2024-VT-999,MOD-004,Testing,2024-02-28

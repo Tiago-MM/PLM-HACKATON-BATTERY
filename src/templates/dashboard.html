@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battery Passport - Diagnostic</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --primary-blue: #4485F4;
+            --primary-hover: #3367D6;
+            --bg-color: #F8F9FB;
+            --text-dark: #1F2937;
+            --text-light: #6B7280;
+            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            --border-color: #E5E7EB;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* En-tête */
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin: 0 0 10px 0;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: #111827;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            margin-bottom: 5px;
+        }
+
+        /* Cartes */
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            padding: 30px;
+            width: 100%;
+            max-width: 950px;
+            box-sizing: border-box;
+            margin-bottom: 25px;
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+
+        /* Formulaire de recherche */
+        .search-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        input[type=text] {
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 15px;
+            width: 100%;
+            max-width: 350px;
+            outline: none;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        input[type=text]:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(68, 133, 244, 0.1);
+        }
+
+        button {
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        /* Grille Fiche Technique */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .tech-item {
+            background-color: #F9FAFB;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .tech-label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .tech-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        /* Titres de section */
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            color: #111827;
+        }
+        
+        .section-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 24px;
+            background-color: var(--primary-blue);
+            margin-right: 12px;
+            border-radius: 2px;
+        }
+
+        /* Tableau */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.9rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 16px;
+            color: var(--text-light);
+            font-weight: 600;
+            background-color: #F9FAFB;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Badges Statut */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .st-Excellent { background-color: #D1FAE5; color: #065F46; } /* Vert */
+        .st-Good { background-color: #DBEAFE; color: #1E40AF; }      /* Bleu */
+        .st-Warning { background-color: #FEF3C7; color: #92400E; }   /* Jaune/Orange */
+        .st-Maintenance { background-color: #FEE2E2; color: #991B1B; } /* Rouge clair */
+        .st-Critical { background-color: #7F1D1D; color: #FEF2F2; }   /* Rouge foncé */
+
+        .error-banner {
+            background-color: #FEF2F2;
+            color: #991B1B;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 500;
+            border: 1px solid #FEE2E2;
+        }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Battery Passport</h1>
+    <div class="subtitle">Interface de Traçabilité & Cycle de Vie</div>
+</header>
+
+<div class="card search-container">
+    <div style="text-align: center; margin-bottom: 10px;">
+        <span style="font-size: 32px;">🔍</span>
+        <h3 style="margin: 10px 0 0 0; color: var(--text-dark);">Accéder au Jumeau Numérique</h3>
+    </div>
+
+    <form action="/garagiste" method="GET" class="search-box">
+        <input type="text" name="passport_id" placeholder="ID Passeport (ex: PASS-UUID-885)" required value="{{ passport if passport else '' }}">
+        <button type="submit">Charger les données</button>
+    </form>
+</div>
+
+{% if error %}
+    <div class="card" style="padding: 0; border: none; background: transparent; box-shadow: none;">
+        <div class="error-banner">⚠️ {{ error }}</div>
+    </div>
+{% endif %}
+
+{% if data %}
+
+
+    <div class="card">
+        <div class="section-title">Fiche Technique & Constructeur</div>
+        <div class="tech-grid">
+            <div class="tech-item">
+                <span class="tech-label">Numéro de Série</span>
+                <span class="tech-value">{{ data[0].Serial }}</span>
+            </div>
+            
+            <div class="tech-item" style="background-color: #EFF6FF; border: 1px solid #BFDBFE;">
+                <span class="tech-label" style="color: #1E40AF;">Constructeur Responsable</span>
+                <span class="tech-value" style="color: #1E3A8A;">{{ data[0].Operator }}</span>
+            </div>
+
+            <div class="tech-item">
+                <span class="tech-label">Chimie</span>
+                <span class="tech-value">{{ data[0].Chemistry }}</span>
+            </div>
+            <div class="tech-item">
+                <span class="tech-label">Capacité Nominale</span>
+                <span class="tech-value">{{ data[0].Capacity }} kWh</span>
+            </div>
+            <div class="tech-item">
+                <span class="tech-label">Empreinte Carbone</span>
+                <span class="tech-value">{{ data[0].Carbon }}</span>
+            </div>
+            
+            <div class="tech-item">
+                <span class="tech-label">Adresse / Usine</span>
+                <span class="tech-value" style="font-size: 0.9rem;">{{ data[0].OperatorAddress }}</span>
+            </div>
+
+            <div class="tech-item">
+                <span class="tech-label">Recyclabilité</span>
+                <span class="tech-value" style="color: #059669;">{{ data[0].Recyclability }}%</span>
+            </div>
+            <div class="tech-item">
+                <span class="tech-label">Matériau Cathode</span>
+                <span class="tech-value">{{ data[0].Cathode }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="section-title">Courbe de Vie (State of Health)</div>
+        <div style="height: 300px; width: 100%;">
+            <canvas id="sohChart"></canvas>
+        </div>
+    </div>
+
+
+    {% if success %}
+    <div style="background-color: #D1FAE5; color: #065F46; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; border: 1px solid #A7F3D0;">
+        {{ success }}
+    </div>
+    {% endif %}
+
+<div class="card" style="border-left: 5px solid var(--primary-blue);">
+        <div class="section-title">🛠️ Ajouter un relevé technique</div>
+        
+        <form method="POST" action="/garagiste" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; align-items: end;">
+            
+            <input type="hidden" name="passport_id" value="{{ passport }}">
+            
+            <div>
+                <label style="display: block; font-size: 0.8rem; color: var(--text-light); margin-bottom: 5px;">Date du relevé</label>
+                <input type="date" id="datePicker" name="log_date" required 
+                       style="width: 100%; box-sizing: border-box; padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; background: white; font-family: inherit;">
+            </div>
+
+            <div>
+                <label style="display: block; font-size: 0.8rem; color: var(--text-light); margin-bottom: 5px;">Voltage Pack (V)</label>
+                <input type="number" step="0.1" name="voltage" placeholder="ex: 380.5" required 
+                       style="width: 100%; box-sizing: border-box; padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; background: white; font-family: inherit;">
+            </div>
+
+            <div>
+                <label style="display: block; font-size: 0.8rem; color: var(--text-light); margin-bottom: 5px;">SoH (%)</label>
+                <input type="number" name="soh" placeholder="ex: 94" required min="0" max="100" 
+                       style="width: 100%; box-sizing: border-box; padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; background: white; font-family: inherit;">
+            </div>
+
+            <div>
+                <label style="display: block; font-size: 0.8rem; color: var(--text-light); margin-bottom: 5px;">Cycles</label>
+                <input type="number" name="cycles" placeholder="ex: 450" required 
+                       style="width: 100%; box-sizing: border-box; padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; background: white; font-family: inherit;">
+            </div>
+
+            <div>
+                <label style="display: block; font-size: 0.8rem; color: var(--text-light); margin-bottom: 5px;">Statut</label>
+                <select name="status" 
+                        style="width: 100%; box-sizing: border-box; padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; background: white; font-family: inherit;">
+                    <option value="Excellent">Excellent</option>
+                    <option value="Good" selected>Good</option>
+                    <option value="Warning">Warning</option>
+                    <option value="Maintenance">Maintenance</option>
+                    <option value="Critical">Critical</option>
+                </select>
+            </div>
+
+            <button type="submit" style="background-color: #10B981; padding: 12px; width: 100%; font-size: 1rem; border: none; cursor: pointer;">
+                💾 Enregistrer
+            </button>
+        </form>
+
+        <script>
+            // Met la date du jour par défaut
+            document.getElementById('datePicker').valueAsDate = new Date();
+        </script>
+    </div>
+
+
+
+    <div class="card">
+        <div class="section-title">Historique des Relevés</div>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date du Relevé</th>
+                        <th>Santé (SoH)</th>
+                        <th>Cycles</th>
+                        <th>Voltage</th>
+                        <th>Diagnostic</th>
+                        <th style="text-align: center;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                    <tr>
+                        <td style="font-family: monospace; color: var(--text-dark);">{{ row.Date }}</td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 50px; height: 6px; background: #E5E7EB; border-radius: 3px;">
+                                    <div style="width: {{ row.SoH if row.SoH is not none else 0 }}%; height: 100%; 
+                                                background: {{ '#9CA3AF' if row.SoH is none else '#10B981' if row.SoH > 90 else '#F59E0B' if row.SoH > 80 else '#EF4444' }}; 
+                                                border-radius: 3px;"></div>
+                                </div>
+                                <strong>{{ row.SoH if row.SoH is not none else 'N/A' }}%</strong>
+                            </div>
+                        </td>
+                        <td>{{ row.Cycles }}</td>
+                        <td>{{ row.Voltage }} V</td>
+                        <td>
+                            <span class="badge st-{{ row.Statut }}">
+                                {{ row.Statut }}
+                            </span>
+                        </td>
+                        
+                        <td style="text-align: center;">
+                            <a href="{{ url_for('delete_log', log_id=row.LogID, passport_id=passport) }}" 
+                               onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce diagnostic ? Cette action est irréversible.');"
+                               style="text-decoration: none; color: #EF4444; font-weight: bold; font-size: 1.2rem; padding: 5px 10px; border-radius: 4px; transition: background 0.2s;"
+                               onmouseover="this.style.backgroundColor='#FEE2E2'"
+                               onmouseout="this.style.backgroundColor='transparent'"
+                               title="Supprimer ce relevé">
+                                &times; </a>
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+<script>
+        const ctx = document.getElementById('sohChart').getContext('2d');
+        
+        // --- MODIFICATION ICI : On inverse l'ordre pour le graphique (Chronologique) ---
+        const labels = {{ graph_dates | tojson }}.reverse();
+        const dataPoints = {{ graph_soh | tojson }}.reverse();
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'État de Santé (SoH %)',
+                    data: dataPoints,
+                    borderColor: '#4485F4', 
+                    backgroundColor: 'rgba(68, 133, 244, 0.1)',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#FFFFFF',
+                    pointBorderColor: '#4485F4',
+                    pointRadius: 6,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        min: 50,
+                        max: 105,
+                        grid: { color: '#F3F4F6' },
+                        ticks: { font: { family: 'Inter' } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { family: 'Inter' } }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: { font: { family: 'Inter' } }
+                    },
+                    tooltip: {
+                        backgroundColor: '#1F2937',
+                        titleFont: { family: 'Inter' },
+                        bodyFont: { family: 'Inter' },
+                        padding: 10,
+                        cornerRadius: 8
+                    }
+                }
+            }
+        });
+    </script>
+
+{% endif %}
+
+</body>
+</html>

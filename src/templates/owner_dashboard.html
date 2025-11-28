@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Espace Constructeur - {{ owner_name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-body: #F3F4F6; --sidebar-bg: #FFFFFF; --accent: #2563EB; --text-main: #1F2937; --text-muted: #6B7280; --border: #E5E7EB; }
+        
+        body { font-family: 'Inter', sans-serif; background: var(--bg-body); margin: 0; display: flex; height: 100vh; overflow: hidden; color: var(--text-main); }
+        
+        /* --- SIDEBAR (Liste des batteries) --- */
+        .sidebar { width: 300px; background: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); }
+        .sidebar-header h2 { font-size: 1.1rem; margin: 0; color: var(--accent); }
+        .sidebar-list { overflow-y: auto; flex: 1; padding: 10px; }
+        
+        .battery-item {
+            display: flex; align-items: center; gap: 10px; padding: 12px;
+            border-radius: 8px; margin-bottom: 5px; cursor: pointer; text-decoration: none; color: inherit;
+            transition: background 0.2s; border: 1px solid transparent;
+        }
+        .battery-item:hover { background: #F9FAFB; }
+        .battery-item.active { background: #EFF6FF; border-color: var(--accent); }
+        .battery-serial { font-weight: 600; font-size: 0.9rem; }
+        .battery-status { font-size: 0.8rem; color: var(--text-muted); }
+
+/* --- MAIN CONTENT (Le Passeport) --- */
+        .main-content { 
+            flex: 1; 
+            padding: 30px; 
+            overflow-y: auto; /* Permet le scroll */
+            /* On supprime display: flex ici pour laisser le scroll naturel se faire */
+            height: 100vh; /* Sécurité pour bien prendre toute la hauteur */
+            box-sizing: border-box;
+        }
+        
+        /* Feuille de style "Papier" du passeport */
+        .passport-sheet {
+            background: white; 
+            width: 100%; 
+            max-width: 900px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-radius: 8px; 
+            overflow: hidden; 
+            
+            /* C'est ici qu'on centre la page maintenant : */
+            margin: 0 auto 40px auto; 
+        }
+
+        .passport-header {
+            background: var(--text-main); color: white; padding: 25px 40px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .passport-title { font-size: 1.5rem; font-weight: 700; letter-spacing: 1px; }
+        .passport-id { font-family: monospace; opacity: 0.8; font-size: 1rem; }
+
+        .passport-body { padding: 40px; }
+
+        /* Sections du passeport */
+        .section-title {
+            font-size: 1.1rem; font-weight: 600; color: var(--accent);
+            border-bottom: 2px solid #EFF6FF; padding-bottom: 10px; margin-bottom: 20px; margin-top: 30px;
+        }
+        .section-title:first-child { margin-top: 0; }
+
+        .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        
+        .info-box { background: #F9FAFB; padding: 15px; border-radius: 6px; border: 1px solid var(--border); }
+        .info-label { display: block; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 5px; letter-spacing: 0.5px; }
+        .info-value { font-size: 1rem; font-weight: 600; color: var(--text-main); }
+        
+        /* Badge Vert pour Recyclabilité */
+        .eco-badge { color: #059669; background: #ECFDF5; padding: 2px 6px; border-radius: 4px; }
+
+        /* Table d'historique */
+        .history-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 10px; }
+        .history-table th { text-align: left; color: var(--text-muted); padding: 10px; border-bottom: 1px solid var(--border); font-weight: 500; }
+        .history-table td { padding: 10px; border-bottom: 1px solid #F3F4F6; }
+        .history-table tr:last-child td { border-bottom: none; }
+        
+        /* Bouton Retour */
+        .logout-btn { display: block; padding: 15px; text-align: center; color: var(--text-muted); text-decoration: none; border-top: 1px solid var(--border); font-size: 0.9rem; }
+        .logout-btn:hover { background: #F9FAFB; color: var(--text-main); }
+
+/* Lien Accueil en haut de la sidebar */
+        .nav-home {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--border);
+            transition: all 0.2s;
+            background-color: #FAFAFA;
+        }
+
+        .nav-home:hover {
+            background-color: #F3F4F6;
+            color: var(--accent);
+            padding-left: 25px; /* Petit effet de glissement */
+        }
+
+    </style>
+</head>
+<body>
+
+
+    <div class="sidebar">
+        <a href="/" class="nav-home">← Retour Accueil</a>
+        
+
+        <div class="sidebar-header">
+            <h2>{{ owner_name }}</h2>
+            <div style="font-size: 0.8rem; color: #666;">Constructeur / Fabricant</div>
+        </div>
+        
+        <div class="sidebar-list">
+            {% for batt in batteries %}
+            <a href="{{ url_for('owner_dashboard', owner_name=owner_name, passport_id=batt.PassportID) }}" 
+               class="battery-item {{ 'active' if batt.PassportID == current_passport else '' }}">
+                <div>
+                    <div class="battery-serial">{{ batt.Serial }}</div>
+                    <div class="battery-status">
+                        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px;"></span>
+                        SoH: {{ batt.SoH if batt.SoH is not none else 'N/A' }}%
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        
+        <a href="/" class="logout-btn">← Changer de compte</a>
+    </div>
+
+    <div class="main-content">
+        {% if data %}
+        <div class="passport-sheet">
+            <div class="passport-header">
+                <div class="passport-title">BATTERY PASSPORT</div>
+                <div class="passport-id">ID: {{ current_passport }}</div>
+            </div>
+
+            <div class="passport-body">
+                
+                <div class="section-title">1. Identité & Fabrication</div>
+                <div class="info-grid">
+                    <div class="info-box">
+                        <span class="info-label">Numéro de Série</span>
+                        <span class="info-value">{{ data[0].Serial }}</span>
+                    </div>
+                    <div class="info-box">
+                        <span class="info-label">Fabricant</span>
+                        <span class="info-value">{{ data[0].Manufacturer }}</span>
+                    </div>
+                    <div class="info-box">
+                        <span class="info-label">Lieu de Production</span>
+                        <span class="info-value">{{ data[0].OperatorAddress }}</span>
+                    </div>
+                </div>
+
+                <div class="section-title">2. Spécifications Techniques</div>
+                <div class="info-grid">
+                    <div class="info-box">
+                        <span class="info-label">Chimie</span>
+                        <span class="info-value">{{ data[0].Chemistry }}</span>
+                    </div>
+                    <div class="info-box">
+                        <span class="info-label">Capacité Nominale</span>
+                        <span class="info-value">{{ data[0].Capacity }} kWh</span>
+                    </div>
+                    <div class="info-box">
+                        <span class="info-label">Matériau Cathode</span>
+                        <span class="info-value">{{ data[0].Cathode }}</span>
+                    </div>
+                </div>
+
+                <div class="section-title">3. Durabilité & Environnement</div>
+                <div class="info-grid">
+                    <div class="info-box">
+                        <span class="info-label">Empreinte Carbone</span>
+                        <span class="info-value">{{ data[0].Carbon }}</span>
+                    </div>
+                    <div class="info-box">
+                        <span class="info-label">Indice de Recyclabilité</span>
+                        <span class="info-value"><span class="eco-badge">{{ data[0].Recyclability }}%</span></span>
+                    </div>
+                    <div class="info-box">
+                        <span class="info-label">État de Santé (SoH)</span>
+                        <span class="info-value" style="color: {{ '#10B981' if data[0].SoH > 80 else '#EF4444' }}">
+                            {{ data[0].SoH }}%
+                        </span>
+                    </div>
+                </div>
+
+                <div class="section-title">4. Journal de Vie (Timeline)</div>
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>État</th>
+                            <th>Cycles</th>
+                            <th>Voltage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in data %}
+                        <tr>
+                            <td>{{ row.Date }}</td>
+                            <td><strong>{{ row.Statut }}</strong></td>
+                            <td>{{ row.Cycles }}</td>
+                            <td>{{ row.Voltage }} V</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                
+                <div style="margin-top: 30px;">
+            
+            {% set last_status = data[0].Statut %}
+            
+            {# 1. Si la batterie est déjà partie #}
+            {% if last_status == 'recycling center' %}
+                
+                <div style="background: #ECFDF5; border: 1px solid #10B981; color: #064E3B; padding: 15px; border-radius: 8px; text-align: center; font-weight: 600;">
+                    ✅ Cette batterie a été transférée au Centre de Tri.
+                </div>
+
+            {# 2. Si la batterie est en état critique (Warning ou pire) #}
+            {% elif last_status in ['Warning', 'Maintenance', 'Critical'] %}
+                
+                <div style="background: #FEF2F2; border: 1px solid #FECACA; padding: 20px; border-radius: 8px;">
+                    <h4 style="margin: 0 0 10px 0; color: #991B1B;">Action requise : Fin de vie détectée</h4>
+                    <p style="margin: 0 0 15px 0; color: #7F1D1D; font-size: 0.9rem;">
+                        Le dernier diagnostic indique un état <strong>{{ last_status }}</strong>. 
+                        Vous devez envoyer cette batterie au recyclage.
+                    </p>
+                    
+                    <a href="{{ url_for('send_to_sorting', passport_id=current_passport, owner_name=owner_name) }}" 
+                       class="btn-waste"
+                       style="text-decoration: none; display: block; text-align: center; background-color: #DC2626;">
+                       🚛 Envoyer au Centre de Tri
+                    </a>
+                </div>
+
+            {# 3. Si la batterie va bien #}
+            {% else %}
+                
+                <button class="btn-waste" style="background-color: #E5E7EB; color: #9CA3AF; cursor: not-allowed; border: 1px solid #D1D5DB;" disabled>
+                    ✅ Batterie opérationnelle (Aucune action requise)
+                </button>
+                
+            {% endif %}
+            
+        </div>
+
+            </div>
+
+            
+        </div>
+        {% else %}
+            <div style="margin-top: 100px; color: #999;">Sélectionnez une batterie à gauche</div>
+        {% endif %}
+    </div>
+
+</body>
+</html>

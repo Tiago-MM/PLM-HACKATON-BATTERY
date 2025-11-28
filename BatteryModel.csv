@@ -1,0 +1,5 @@
+modelID,manufacturer,chemistry,nominalCapacity_kWh
+MOD-001,VoltTech,NMC (Nickel Manganese Cobalt),75.5
+MOD-002,GreenEnergy,LFP (Lithium Iron Phosphate),60.0
+MOD-003,PowerCorp,NCA (Nickel Cobalt Aluminum),82.0
+MOD-004,VoltTech,SolidState-Gen1,100.0

@@ -1,0 +1,23 @@
+creation battery et lien
+
+MATCH (constructeur:EconomicOperator {name: 'VoltTech Logistics'})
+MATCH (modele:BatteryModel {modelID: 'MOD-002'})
+CREATE (b:BatteryInstance {serialNumber: 'SN-2025-VT-123', status: 'Active'})
+CREATE (p:BatteryPassport {passportID: 'PASS-UUID-012'})
+// 3. On tire les fils (les relations) vers l'existant
+CREATE (modele)-[:HAS_INSTANCE]->(b)       // On la relie au modèle existant
+CREATE (b)-[:HAS_DIGITAL_TWIN]->(p)        // On lie la batterie à son passeport
+CREATE (p)-[:OWNED_BY]->(constructeur)     // On la relie au constructeur existant
+
+MATCH (b:BatteryInstance {serialNumber: 'SN-2025-VT-123'})
+
+CREATE (log:HealthLog {
+    id: randomUUID(),
+    date: date(),           // Date d'aujourd'hui
+    voltage: 400.0,         // Voltage nominal neuf
+    soh: 100,               // Santé parfaite au début
+    cycleCount: 0,          // 0 cycles
+    status: 'Excellent'
+})
+
+CREATE (b)-[:HAS_HISTORY_LOG]->(log)
